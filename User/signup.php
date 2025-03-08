@@ -1,36 +1,52 @@
-<?php 
-            include("control.php");
-            $get_Data = new data_user();
+<?php
+include("control.php");
+$get_Data = new data_user();
 
-            if (isset($_POST['submit'])) {
-                if (isset($_POST['username']) && isset($_POST['password']) && isset($_POST['confirm_password'])) {
-                    if ($_POST['password'] != $_POST['confirm_password']) {
-                        echo "<script>alert('Passwords do not match')</script>";
+if (isset($_POST['submit'])) {
+    if (isset($_POST['username']) && isset($_POST['password']) && isset($_POST['confirm_password']) && isset($_POST['role'])) {
+        if ($_POST['password'] != $_POST['confirm_password']) {
+            echo "<script>alert('Mật khẩu không khớp')</script>";
+        } else {
+            // Kiểm tra xem tên đăng nhập đã tồn tại chưa
+            $select = $get_Data->select_user($_POST['username']);
+            if ($select->num_rows > 0) {
+                echo "<script>alert('Tên đăng nhập đã tồn tại')</script>";
+            } else {
+                // Mã hóa mật khẩu
+                $hashed_password = $_POST['password'];
+                                $role = $_POST['role'];
+
+                                // Nếu muốn tạo tài khoản admin, bạn cần chắc chắn người tạo tài khoản này có quyền admin
+                if ($role == 'admin') {
+                    // Kiểm tra nếu người dùng đang đăng nhập là admin
+                    if (!isset($_SESSION['user']) || $_SESSION['role'] != 'admin') {
+                        echo "<script>alert('Chỉ quản trị viên mới có thể tạo tài khoản admin')</script>";
                     } else {
-                        $select = $get_Data->select_user($_POST['username']);
-                        $check = 0;
-                        foreach ($select as $sel) {
-                            $check++;
-                        }
-                        if ($check >= 1) {
-                            echo "<script>alert('Tên đăng nhập đã tồn tại')</script>";
-                        } else {
-                        $hashed_password = $_POST['password'];
-                
-                // Chèn người dùng mới vào cơ sở dữ liệu
-                    $insert = $get_Data->insert_User($_POST['username'], $hashed_password);
+                        // Chèn người dùng mới vào cơ sở dữ liệu
+                        $insert = $get_Data->insert_User($_POST['username'], $hashed_password, $role);
                         if ($insert) {
-                                echo "<script>alert('Đăng ký thành công'); window.location='signin.php';</script>";
-                            } else {
-                                echo "<script>alert('Đăng ký thất bại')</script>";
-                            }
+                            echo "<script>alert('Tạo tài khoản admin thành công'); window.location='signin.php';</script>";
+                        } else {
+                            echo "<script>alert('Tạo tài khoản admin thất bại')</script>";
                         }
                     }
                 } else {
-                    echo "<script>alert('Vui lòng nhập đủ thông tin')</script>";
+                    // Nếu tạo tài khoản người dùng, không cần kiểm tra quyền admin
+                    $insert = $get_Data->insert_User($_POST['username'], $hashed_password, $role);
+                    if ($insert) {
+                        echo "<script>alert('Tạo tài khoản người dùng thành công'); window.location='signin.php';</script>";
+                    } else {
+                        echo "<script>alert('Tạo tài khoản người dùng thất bại')</script>";
+                    }
                 }
             }
-        ?>
+        }
+    } else {
+        echo "<script>alert('Vui lòng nhập đủ thông tin')</script>";
+    }
+}
+?>
+
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -89,7 +105,16 @@
                         </div>
                     </div>
                 </div>
-
+                
+                <div class="form-row">
+                  <div class="form-item">
+                  <label for="role">Chọn vai trò</label>
+                  <select name="role" id="role" required>
+                  <option value="user">Người dùng</option>
+                  <option value="admin">Quản trị viên</option>
+                  </select>
+                </div>
+                </div>
                 <div class="form-row">
                     <div class="form-item">
                         <button class="button medium primary" type="submit" name="submit">Đăng ký ngay!</button>

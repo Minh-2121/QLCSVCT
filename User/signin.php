@@ -60,24 +60,34 @@ session_start(); ?>
                         </div>
                     </form>
                     <?php
-                        include("control.php");
-                        $get_Data = new data_user();
+                       include("control.php");
+                       $get_Data = new data_user();
 
-                        if (isset($_POST['submit'])) {
-                            // Gọi hàm login để kiểm tra tên đăng nhập và mật khẩu
-                            $select = $get_Data->login($_POST['username'], $_POST['password']);
-                            
-                            if ($select) {
-                                // Đăng nhập thành công
-                                echo "<script>alert('Đăng nhập thành công'); window.location=('index.php');</script>";
-                                // Lưu trữ thông tin người dùng trong session
-                                $_SESSION['user'] = $_POST['username'];
-                            } else {
-                                // Đăng nhập thất bại
-                                echo "<script>alert('Đăng nhập thất bại');</script>";
-                            }
-                        }
-                    ?>
+                      if (isset($_POST['submit'])) {
+                         $username = $_POST['username'];
+                         $password = $_POST['password'];
+
+    // Gọi hàm login
+                        $user = $get_Data->login($username, $password);
+           
+                     if ($user) {
+        // Đăng nhập thành công
+                     $_SESSION['username'] = $user['username'];
+                     $_SESSION['role'] = $user['role'];
+
+        // Điều hướng theo vai trò
+                    if ($user['role'] == 'admin') {
+                    echo "<script>alert('Đăng nhập thành công (Admin)'); window.location='Admin/Trangchu.php';</script>";
+                   } else {
+                     echo "<script>alert('Đăng nhập thành công (User)'); window.location='index.php';</script>";
+                 }
+                   } else {
+        // Đăng nhập thất bại
+                  echo "<script>alert('Sai tên đăng nhập hoặc mật khẩu');</script>";
+    }
+}
+?>
+
                 </div>
             </div>
         </div>

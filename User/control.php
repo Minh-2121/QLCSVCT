@@ -18,10 +18,10 @@ class data_user
     // Kiểm tra nếu có người dùng tồn tại
     if ($result->num_rows > 0) {
         $row = $result->fetch_assoc();
-        
-        // Xác minh mật khẩu nhập vào với mật khẩu đã mã hóa trong cơ sở dữ liệu
-        if ($pass == $row['password']) {
-            return $row; // Đăng nhập thành công
+          // Sử dụng password_verify để kiểm tra mật khẩu
+          if (password_verify($pass, $row['password'])) {
+            $_SESSION['role'] = $row['role']; // Lưu vai trò
+            return $row;
         }
     }
     return false; // Login failed
@@ -56,6 +56,15 @@ class data_user
          $run = mysqli_query($conn, $sql);
          return $run;  // Trả về kết quả truy vấn
      }
+     public function search_Assets($keyword) {
+        global $conn;
+        $sql = "SELECT * FROM assets WHERE Name LIKE ? OR Type LIKE ? OR Location LIKE ?";
+        $stmt = $conn->prepare($sql);
+        $searchKey = "%" . $keyword . "%";
+        $stmt->bind_param("sss", $searchKey, $searchKey, $searchKey);
+        $stmt->execute();
+        return $stmt->get_result();
+    }
     
      public function select_AssetsStatus()
      {

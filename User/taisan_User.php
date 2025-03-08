@@ -47,10 +47,14 @@ session_start();
                 <li><a href="lienhe.php">Liên Hệ</a></li>
             </ul>
             <div class="right-section">
-                <div class="search-box">
-                    <input type="text" placeholder="Tìm kiếm...">
-                    <button type="submit"><i class="fas fa-search"></i></button>
-                </div>
+            <form method="GET">
+            <div class="search-box">
+            <input type="text" name="search" placeholder="Tìm kiếm tài sản..." 
+               value="<?php echo isset($_GET['search']) ? htmlspecialchars($_GET['search']) : ''; ?>">
+           <button type="submit"><i class="fas fa-search"></i></button>
+           </div>
+           </form>
+
                 <?php if (isset($_SESSION["user"])) {
               ?>
               <i class="login-btn"> Hello <?php echo $_SESSION['user'] ?></i>
@@ -87,7 +91,13 @@ session_start();
                 include("connect.php");
                 include("control.php");
                 $user = new data_user();
-                $assets = $user->select_Assets();
+                 // Kiểm tra từ khóa tìm kiếm
+            if (isset($_GET['search']) && !empty($_GET['search'])) {
+                $keyword = $_GET['search'];
+                $assets = $user->search_Assets($keyword); // Gọi hàm tìm kiếm
+            } else {
+                $assets = $user->select_Assets(); // Gọi hàm lấy danh sách tài sản
+            }
                 if ($assets) {
                     while ($row = mysqli_fetch_assoc($assets)) {
                         echo "<tr>";
